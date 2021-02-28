@@ -81,5 +81,3 @@ class Map:
         self.propagate()
 
 
-test = Map()
-test.start()
