@@ -63,13 +63,23 @@ class Map:
                     elif self.map[y][x].height < min_height:
                         self.map[y][x].height = min_height
                 else:
-                    self.map[y][x].height = randint(min_height, max_height)
+                    if x != 0 and (y == 0 or y == self.height):
+                        self.map[y][x].height = self.map[y][x-1].height + round(1/5*randint(min_height, max_height))
+                        if self.map[y][x].height > max_height:
+                            self.map[y][x].height = max_height
+                        elif self.map[y][x].height < min_height:
+                            self.map[y][x].height = min_height
+                    else:
+                        self.map[y][x].height = self.map[y-1][x].height
                 for color in color_panel.keys():
                     if color[0] < self.map[y][x].height <= color[1]:
                         self.img_map.putpixel((x,y), color_panel[color])
         self.img_map.show()
 
+    def start(self):
+        self.init_map()
+        self.propagate()
+
 
 test = Map()
-test.init_map()
-test.propagate()
+test.start()
