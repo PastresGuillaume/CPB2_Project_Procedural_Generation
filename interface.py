@@ -7,7 +7,6 @@ def tk_propagate_method():
         "width" : int(im_width.get()),
         "height" : int(im_height.get()),
         "seed" : int(seed.get()),
-        "seed_range": int(scale_seed_range.get())
     }
     map_propagate_method = Map(data)
     map_propagate_method.start()
@@ -41,11 +40,6 @@ label_seed = tk.Label(window, text="Seed Number")
 seed = tk.Spinbox(window, from_=1, to=1000, increment =1)
 label_seed.pack()
 seed.pack()
-
-# Range des Seeds
-scale_seed_range=tk.Scale(window, orient='horizontal', from_=1, to=9,resolution=1, length=300,label='Seed Range')
-scale_seed_range.set(5)
-scale_seed_range.pack()
 
 
 button_propagate = tk.Button(window, text="Start", command=tk_propagate_method)
