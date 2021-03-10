@@ -1,6 +1,7 @@
 from random import randint, choice
 from PIL import Image
 from copy import deepcopy
+import timeit
 
 max_height = 200
 min_height = -100
@@ -80,7 +81,9 @@ class Map:
                         if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == node[0] and xbis == node[1]):
                             if self.map[ybis][xbis].height == empty_node:
                                 near_nodes.append((ybis, xbis))
-                while len(near_nodes) !=0:
+                if len(near_nodes) == 0:
+                    self.seed_list.remove(node)
+                while len(near_nodes) != 0:
                     new_node = choice(near_nodes)
                     value = 0
                     close_node = 0
@@ -111,5 +114,3 @@ class Map:
         self.node_spawn()
         self.propagate()
         self.convert_image()
-
-
