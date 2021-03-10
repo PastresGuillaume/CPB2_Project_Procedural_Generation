@@ -9,7 +9,7 @@ empty_node = None
 
 
 color_panel = {
-    (-100, -75): (0, 15, 198),
+    (-101, -75): (0, 15, 198),
     (-75, -50): (0, 93, 255),
     (-50, -25):  (0, 162, 255),
     (-25, 0): (0, 228, 255),
@@ -85,15 +85,21 @@ class Map:
                     self.seed_list.remove(node)
                 while len(near_nodes) != 0:
                     new_node = choice(near_nodes)
-                    value = 0
+                    square = 0
                     close_node = 0
                     for ybis in range(new_node[0] - 1, new_node[0] + 2):
                         for xbis in range(new_node[1] - 1, new_node[1] + 2):
                             if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]):
                                 if self.map[ybis][xbis].height != empty_node:
-                                    value += self.map[ybis][xbis].height
+                                    square += self.map[ybis][xbis].height
                                     close_node += 1
-                    self.map[new_node[0]][new_node[1]].height = round(value/close_node)
+                    perc = abs(round(1/5 * square/close_node))
+                    value = round(square/close_node) + randint(-perc, perc)
+                    if value < min_height:
+                        value = min_height
+                    elif value > max_height:
+                        value = max_height
+                    self.map[new_node[0]][new_node[1]].height = value
                     near_nodes.remove(new_node)
                 node_to_check.remove(node)
             self.is_finished()
