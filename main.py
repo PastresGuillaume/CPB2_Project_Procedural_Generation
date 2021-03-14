@@ -1,9 +1,8 @@
 from random import randint, choice
 from PIL import Image
-from copy import deepcopy
-import timeit
 
-max_height = 200
+
+max_height = 255
 min_height = -100
 empty_node = None
 
@@ -36,11 +35,10 @@ class Map:
         self.width = data["width"]
         self.height = data["height"]
         self.seed = data["seed"]
-        self.seed_range = 0
         self.map = []
         self.img_map = Image.new("RGB", (self.width, self.height), 0)
         self.seed_list = []
-        self.running = True
+        self.node_list = []
 
     def show(self):
         for y in range(self.height):
@@ -62,47 +60,38 @@ class Map:
                 self.map[y][x].height = randint(min_height, max_height)
                 self.seed_list.append((y, x))
 
-    def is_finished(self):
-        self.running = False
-        for y in range(self.height):
-            for x in range(self.width):
-                if self.map[y][x].height == empty_node:
-                    self.running = True
+    def check_close_node(self, node):
+        for ybis in range(node[0] - 1, node[0] + 2):
+            for xbis in range(node[1] - 1, node[1] + 2):
+                if 0 <= ybis < self.height and 0 <= xbis < self.width and (not(ybis,xbis) in self.node_list) and self.map[ybis][xbis].height == empty_node :
+                    self.node_list.append((ybis,xbis))
 
     def propagate(self):
-        while self.running:
-            self.seed_range += 1
-            node_to_check = deepcopy(self.seed_list)
-            while len(node_to_check) != 0:
-                node = choice(node_to_check)
-                near_nodes = []
-                for ybis in range(node[0] - self.seed_range, node[0] + self.seed_range + 1):
-                    for xbis in range(node[1] - self.seed_range, node[1] + self.seed_range + 1):
-                        if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == node[0] and xbis == node[1]):
-                            if self.map[ybis][xbis].height == empty_node:
-                                near_nodes.append((ybis, xbis))
-                if len(near_nodes) == 0:
-                    self.seed_list.remove(node)
-                while len(near_nodes) != 0:
-                    new_node = choice(near_nodes)
-                    square = 0
-                    close_node = 0
-                    for ybis in range(new_node[0] - 1, new_node[0] + 2):
-                        for xbis in range(new_node[1] - 1, new_node[1] + 2):
-                            if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]):
-                                if self.map[ybis][xbis].height != empty_node:
-                                    square += self.map[ybis][xbis].height
-                                    close_node += 1
-                    perc = abs(round(1/5 * square/close_node))
-                    value = round(square/close_node) + randint(-perc, perc)
-                    if value < min_height:
-                        value = min_height
-                    elif value > max_height:
-                        value = max_height
-                    self.map[new_node[0]][new_node[1]].height = value
-                    near_nodes.remove(new_node)
-                node_to_check.remove(node)
-            self.is_finished()
+        i = 0
+        for seed in self.seed_list:
+            self.check_close_node(seed)
+            i += 1
+        while len(self.node_list) !=0:
+            new_node = choice(self.node_list)
+            square = 0
+            close_node = 0
+            for ybis in range(new_node[0] - 1, new_node[0] + 2):
+                for xbis in range(new_node[1] - 1, new_node[1] + 2):
+                    if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]):
+                        if self.map[ybis][xbis].height != empty_node:
+                            square += self.map[ybis][xbis].height
+                            close_node += 1
+            perc = abs(round(1 / 5 * square / close_node))
+            value = round(square / close_node) + randint(-perc, perc)
+            if value < min_height:
+                value = min_height
+            elif value > max_height:
+                value = max_height
+            self.map[new_node[0]][new_node[1]].height = value
+            self.check_close_node(new_node)
+            self.node_list.remove(new_node)
+            i +=1
+            print(self.width * self.height - i)
 
     def convert_image(self):
         for y in range(self.height):
