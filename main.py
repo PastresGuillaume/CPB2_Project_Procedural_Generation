@@ -5,6 +5,7 @@ from PIL import Image
 max_height = 255
 min_height = -100
 empty_node = None
+added_node = 999
 
 
 color_panel = {
@@ -63,8 +64,9 @@ class Map:
     def check_close_node(self, node):
         for ybis in range(node[0] - 1, node[0] + 2):
             for xbis in range(node[1] - 1, node[1] + 2):
-                if 0 <= ybis < self.height and 0 <= xbis < self.width and (not(ybis,xbis) in self.node_list) and self.map[ybis][xbis].height == empty_node :
+                if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis].height == empty_node :
                     self.node_list.append((ybis,xbis))
+                    self.map[ybis][xbis].height = added_node
 
     def propagate(self):
         i = 0
@@ -75,12 +77,13 @@ class Map:
             new_node = choice(self.node_list)
             square = 0
             close_node = 0
-            for ybis in range(new_node[0] - 1, new_node[0] + 2):
-                for xbis in range(new_node[1] - 1, new_node[1] + 2):
-                    if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]):
-                        if self.map[ybis][xbis].height != empty_node:
-                            square += self.map[ybis][xbis].height
-                            close_node += 1
+            for radius in range(1, 4):
+                for ybis in range(new_node[0] - radius, new_node[0] + radius + 1):
+                    for xbis in range(new_node[1] - radius, new_node[1] + radius + 1):
+                        if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]) and self.map[ybis][xbis].height != added_node:
+                            if self.map[ybis][xbis].height != empty_node:
+                                square += self.map[ybis][xbis].height*(4-radius)
+                                close_node += 1*(4-radius)
             perc = abs(round(1 / 5 * square / close_node))
             value = round(square / close_node) + randint(-perc, perc)
             if value < min_height:
