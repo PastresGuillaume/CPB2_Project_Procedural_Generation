@@ -1,29 +1,42 @@
 from random import randint, choice
 from PIL import Image
 
-
-max_height = 255
-min_height = -100
+min_height = 0
+max_height = 400
 empty_node = None
 added_node = 999
 
 
-color_panel = {
-    (-101, -75): (0, 15, 198),
-    (-75, -50): (0, 93, 255),
-    (-50, -25):  (0, 162, 255),
-    (-25, 0): (0, 228, 255),
-    (0, 25):  (38, 131, 0),
-    (25, 50): (51, 178, 0),
-    (50, 75): (73, 255, 0),
-    (75, 100): (174, 255, 0),
-    (100, 125): (236, 255, 0),
-    (125, 150): (255, 205, 0),
-    (150, 175): (255, 151, 0),
-    (175, 200): (255, 73, 0),
-    (200, 225): (255, 0, 0),
-    (225, 255): (111, 43, 43),
+color_panel1 = {
+    (-1, 25): (0, 15, 198),
+    (25, 50): (0, 93, 255),
+    (50, 75):  (0, 162, 255),
+    (75, 100): (0, 228, 255),
+    (100, 125):  (38, 131, 0),
+    (125, 150): (51, 178, 0),
+    (150, 175): (73, 255, 0),
+    (175, 200): (174, 255, 0),
+    (200, 225): (236, 255, 0),
+    (225, 250): (255, 205, 0),
+    (250, 275): (255, 151, 0),
+    (275, 300): (255, 73, 0),
+    (300, 325): (255, 0, 0),
+    (325, 350): (111, 43, 43),
 }
+
+color_panel2 = {
+    (-1, 40): (0, 15, 198),
+    (40, 80): (0, 93, 255),
+    (80, 120):  (0, 162, 255),
+    (120, 160):  (38, 131, 0),
+    (160, 200): (73, 255, 0),
+    (200, 240): (174, 255, 0),
+    (240, 280): (236, 255, 0),
+    (280, 320): (255, 151, 0),
+    (320, 360): (255, 0, 0),
+    (360, 400): (111, 43, 43),
+}
+
 
 
 class Case:
@@ -70,6 +83,7 @@ class Map:
 
     def propagate(self):
         i = 0
+        iterations = round(self.width * 0.02)
         for seed in self.seed_list:
             self.check_close_node(seed)
             i += 1
@@ -77,14 +91,15 @@ class Map:
             new_node = choice(self.node_list)
             square = 0
             close_node = 0
-            for radius in range(1, 4):
+            for radius in range(1, iterations):
                 for ybis in range(new_node[0] - radius, new_node[0] + radius + 1):
                     for xbis in range(new_node[1] - radius, new_node[1] + radius + 1):
                         if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]) and self.map[ybis][xbis].height != added_node:
                             if self.map[ybis][xbis].height != empty_node:
-                                square += self.map[ybis][xbis].height*(4-radius)
-                                close_node += 1*(4-radius)
-            perc = abs(round(1 / 5 * square / close_node))
+                                square += self.map[ybis][xbis].height*(iterations-radius)
+                                close_node += 1*(iterations-radius)
+            #perc = abs(round(1 / 5 * square / close_node))
+            perc = round(max_height * 0.05)
             value = round(square / close_node) + randint(-perc, perc)
             if value < min_height:
                 value = min_height
@@ -102,13 +117,14 @@ class Map:
                 if self.map[y][x].height == empty_node:
                     self.img_map.putpixel((x, y), (0, 0, 0))
                 else:
-                    for color in color_panel.keys():
+                    for color in color_panel2.keys():
                         if color[0] < self.map[y][x].height <= color[1]:
-                            self.img_map.putpixel((x,y), color_panel[color])
-        self.img_map.show()
+                            self.img_map.putpixel((x,y), color_panel2[color])
 
     def start(self):
         self.init_map()
         self.node_spawn()
         self.propagate()
         self.convert_image()
+        return self.img_map
+
