@@ -3,10 +3,10 @@ from PIL import Image
 
 min_height = 0
 max_height = 400
-empty_node = None
-added_node = 999
+empty_node = None # valeur des cases vides
+added_node = 999  # valeur des cases vides qui ont été ajoutées à la liste des cases à s'occuper
 
-
+# Panel de couleur utlisée au départ
 color_panel1 = {
     (-1, 25): (0, 15, 198),
     (25, 50): (0, 93, 255),
@@ -24,6 +24,7 @@ color_panel1 = {
     (325, 350): (111, 43, 43),
 }
 
+# Panel de couleur réduit
 color_panel2 = {
     (-1, 40): (0, 15, 198),
     (40, 80): (0, 93, 255),
@@ -38,7 +39,6 @@ color_panel2 = {
 }
 
 
-
 class Case:
     def __init__(self):
         self.height = empty_node
@@ -46,6 +46,7 @@ class Case:
 
 class Map:
     def __init__(self, data):
+        # Récupération des données envoyées
         self.width = data["width"]
         self.height = data["height"]
         self.seed = data["seed"]
@@ -55,35 +56,39 @@ class Map:
         self.node_list = []
 
     def show(self):
+        # Print la valeur numérique de chaque case (pour test uniquement)
         for y in range(self.height):
             for x in range(self.width):
                 print(self.map[y][x].height, end="; ")
             print("")
 
     def init_map(self):
+        # Création d'une matrice de la taille souhaitée
         for y in range(self.height):
             self.map.append([])
             for x in range(self.width):
                 self.map[y].append(Case())
 
     def node_spawn(self):
+        # Ajoute le nombre de seed demandées sur la carte (Position et hauteur aléatoire)
         while len(self.seed_list) < self.seed:
             x = randint(0, self.width-1)
             y = randint(0, self.height-1)
-            if self.map[y][x].height == empty_node:
+            if self.map[y][x].height == empty_node:  # On vérifie que la case est vide
                 self.map[y][x].height = randint(min_height, max_height)
                 self.seed_list.append((y, x))
 
     def check_close_node(self, node):
+        # Ajoute toute les nodes qui n'ont pas encore étés sélectionnés autour du point considéré, dans une liste
         for ybis in range(node[0] - 1, node[0] + 2):
             for xbis in range(node[1] - 1, node[1] + 2):
-                if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis].height == empty_node :
+                if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis].height == empty_node:
                     self.node_list.append((ybis,xbis))
                     self.map[ybis][xbis].height = added_node
 
     def propagate(self):
         i = 0
-        iterations = round(self.width * 0.02) + 1
+        iterations = 3 + 1
         for seed in self.seed_list:
             self.check_close_node(seed)
             i += 1
@@ -94,7 +99,7 @@ class Map:
             for radius in range(1, iterations):
                 for ybis in range(new_node[0] - radius, new_node[0] + radius + 1):
                     for xbis in range(new_node[1] - radius, new_node[1] + radius + 1):
-                        if 0 <= ybis < self.height and 0 <= xbis < self.width and not (ybis == new_node[0] and xbis == new_node[1]) and self.map[ybis][xbis].height != added_node:
+                        if 0 <= ybis < self.height and 0 <= xbis < self.width and (xbis ==new_node[1]-radius or xbis == new_node[1]+radius or ybis==new_node[0]-radius or ybis== new_node[0]+radius )and self.map[ybis][xbis].height != added_node:
                             if self.map[ybis][xbis].height != empty_node:
                                 square += self.map[ybis][xbis].height*(iterations-radius)
                                 close_node += 1*(iterations-radius)
@@ -112,6 +117,7 @@ class Map:
             print(self.width * self.height - i)
 
     def convert_image(self):
+        # Convertit la valeur numérique des hauteur en couleur (selon un panel de couleur
         for y in range(self.height):
             for x in range(self.width):
                 if self.map[y][x].height == empty_node:
