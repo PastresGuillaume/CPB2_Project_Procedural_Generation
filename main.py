@@ -83,7 +83,7 @@ class Map:
 
     def propagate(self):
         i = 0
-        iterations = round(self.width * 0.02)
+        iterations = round(self.width * 0.02) + 1
         for seed in self.seed_list:
             self.check_close_node(seed)
             i += 1
