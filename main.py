@@ -1,5 +1,11 @@
 from random import randint, choice
 from PIL import Image
+from scipy.ndimage.filters import gaussian_filter
+
+from mpl_toolkits import mplot3d
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 min_height = 0
 max_height = 400
@@ -38,18 +44,13 @@ color_panel2 = {
     (360, 400): (111, 43, 43),
 }
 
-
-class Case:
-    def __init__(self):
-        self.height = empty_node
-
-
 class Map:
     def __init__(self, data):
         # Récupération des données envoyées
         self.width = data["width"]
         self.height = data["height"]
         self.seed = data["seed"]
+        self.blur = data["blur"]
         self.map = []
         self.img_map = Image.new("RGB", (self.width, self.height), 0)
         self.seed_list = []
@@ -59,7 +60,7 @@ class Map:
         # Print la valeur numérique de chaque case (pour test uniquement)
         for y in range(self.height):
             for x in range(self.width):
-                print(self.map[y][x].height, end="; ")
+                print(self.map[y][x], end="; ")
             print("")
 
     def init_map(self):
@@ -67,41 +68,41 @@ class Map:
         for y in range(self.height):
             self.map.append([])
             for x in range(self.width):
-                self.map[y].append(Case())
+                self.map[y].append(empty_node)
 
     def node_spawn(self):
         # Ajoute le nombre de seed demandées sur la carte (Position et hauteur aléatoire)
         while len(self.seed_list) < self.seed:
             x = randint(0, self.width-1)
             y = randint(0, self.height-1)
-            if self.map[y][x].height == empty_node:  # On vérifie que la case est vide
-                self.map[y][x].height = randint(min_height, max_height)
+            if self.map[y][x] == empty_node:  # On vérifie que la case est vide
+                self.map[y][x] = randint(min_height, max_height)
                 self.seed_list.append((y, x))
 
     def check_close_node(self, node):
         # Ajoute toute les nodes qui n'ont pas encore étés sélectionnés autour du point considéré, dans une liste
         for ybis in range(node[0] - 1, node[0] + 2):
             for xbis in range(node[1] - 1, node[1] + 2):
-                if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis].height == empty_node:
+                if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis] == empty_node:
                     self.node_list.append((ybis,xbis))
-                    self.map[ybis][xbis].height = added_node
+                    self.map[ybis][xbis] = added_node
 
     def propagate(self):
         i = 0
-        iterations = 3 + 1
-        for seed in self.seed_list:
+        iterations = 3 + 1 # Portée de la moyenne
+        for seed in self.seed_list:  # On traite d'abord les seeds
             self.check_close_node(seed)
             i += 1
         while len(self.node_list) !=0:
-            new_node = choice(self.node_list)
+            new_node = choice(self.node_list)  # On choisit une node aléatoire parmit la liste
             square = 0
             close_node = 0
             for radius in range(1, iterations):
                 for ybis in range(new_node[0] - radius, new_node[0] + radius + 1):
                     for xbis in range(new_node[1] - radius, new_node[1] + radius + 1):
-                        if 0 <= ybis < self.height and 0 <= xbis < self.width and (xbis ==new_node[1]-radius or xbis == new_node[1]+radius or ybis==new_node[0]-radius or ybis== new_node[0]+radius )and self.map[ybis][xbis].height != added_node:
-                            if self.map[ybis][xbis].height != empty_node:
-                                square += self.map[ybis][xbis].height*(iterations-radius)
+                        if 0 <= ybis < self.height and 0 <= xbis < self.width and (xbis ==new_node[1]-radius or xbis == new_node[1]+radius or ybis==new_node[0]-radius or ybis== new_node[0]+radius )and self.map[ybis][xbis] != added_node:
+                            if self.map[ybis][xbis] != empty_node:
+                                square += self.map[ybis][xbis]*(iterations-radius)
                                 close_node += 1*(iterations-radius)
             #perc = abs(round(1 / 5 * square / close_node))
             perc = round(max_height * 0.05)
@@ -110,7 +111,7 @@ class Map:
                 value = min_height
             elif value > max_height:
                 value = max_height
-            self.map[new_node[0]][new_node[1]].height = value
+            self.map[new_node[0]][new_node[1]] = value
             self.check_close_node(new_node)
             self.node_list.remove(new_node)
             i +=1
@@ -120,17 +121,29 @@ class Map:
         # Convertit la valeur numérique des hauteur en couleur (selon un panel de couleur
         for y in range(self.height):
             for x in range(self.width):
-                if self.map[y][x].height == empty_node:
+                if self.map[y][x] == empty_node:
                     self.img_map.putpixel((x, y), (0, 0, 0))
                 else:
                     for color in color_panel2.keys():
-                        if color[0] < self.map[y][x].height <= color[1]:
+                        if color[0] < self.map[y][x]<= color[1]:
                             self.img_map.putpixel((x,y), color_panel2[color])
 
     def start(self):
         self.init_map()
         self.node_spawn()
         self.propagate()
+        self.map = gaussian_filter(np.array(self.map), self.blur)
         self.convert_image()
+        self.show_3d()
         return self.img_map
+
+    def show_3d(self):
+        x = np.arange(0, self.width, 1)
+        y = np.arange(0, self.height, 1)
+        X, Y = np.meshgrid(x, y)
+        Z = self.map
+        ax = plt.axes(projection='3d')
+        ax.plot_surface(X, Y, Z)
+        ax.set_title('surface')
+        plt.show()
 

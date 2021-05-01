@@ -1,20 +1,23 @@
 import tkinter as tk
 from main import Map
-from PIL import Image, ImageTk
+from PIL import ImageTk
 
+# définition de la taille de base du canvas
 canvas_height = 100
 canvas_width = 100
 
 
+# Interface graphique du projet
 class InterfaceProject:
     def __init__(self, master):
+        # Création de la fenêtre et du canvas image
         self.master = master
         self.canvas = tk.Canvas(self.master, height=canvas_height, width=canvas_width)
         self.canvas.pack()
         self.canvas_image = self.canvas.create_image(0, 0, anchor=tk.NW, image='')
         self.image_canvas = ''
 
-        # Placements des widgets
+        # Label
         self.propagate_label = tk.Label(window, text="Génération par propagation")
         self.propagate_label.pack()
 
@@ -35,21 +38,30 @@ class InterfaceProject:
         self.label_seed.pack()
         self.seed.pack()
 
-        # Bouton
+        # Lissage du flou du Gausse
+        self.label_blur = tk.Label(window, text="Blur")
+        self.blur = tk.Scale(window, from_=1, to=10, orient="horizontal")
+        self.label_blur.pack()
+        self.blur.pack()
+
+        # Boutons
         self.button_propagate = tk.Button(window, text="Start", command=self.propagate_method)
         self.button_propagate.pack()
 
     def propagate_method(self):
+        # Récupération des données sélectionnées
         data = {
             "width": int(self.im_width.get()),
             "height":  int(self.im_height.get()),
             "seed": int(self.seed.get()),
+            "blur": int(self.blur.get()),
         }
-        map_propagate_method = Map(data)
-        self.image = map_propagate_method.start()
-        self.show_image()
+        map_propagate_method = Map(data) # Envoi des données
+        self.image = map_propagate_method.start() # Création de l'image
+        self.show_image() # Affichage de l'image
 
     def show_image(self):
+        # Affiche l'image générée dans le canvas de tkinter
         self.image_canvas = ImageTk.PhotoImage(self.image)
         height = self.image.height
         width = self.image.width
