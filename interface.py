@@ -1,6 +1,10 @@
 import tkinter as tk
-from main import Map
+from test import Map
 from PIL import ImageTk
+
+from mpl_toolkits import mplot3d
+import numpy as np
+import matplotlib.pyplot as plt
 
 # définition de la taille de base du canvas
 canvas_height = 100
@@ -16,6 +20,9 @@ class InterfaceProject:
         self.canvas.pack()
         self.canvas_image = self.canvas.create_image(0, 0, anchor=tk.NW, image='')
         self.image_canvas = ''
+        self.image_2d = None
+        self.graph_3d = None
+        self.data = None
 
         # Label
         self.propagate_label = tk.Label(window, text="Génération par propagation")
@@ -50,23 +57,34 @@ class InterfaceProject:
 
     def propagate_method(self):
         # Récupération des données sélectionnées
-        data = {
+        self.data = {
             "width": int(self.im_width.get()),
             "height":  int(self.im_height.get()),
             "seed": int(self.seed.get()),
             "blur": int(self.blur.get()),
         }
-        map_propagate_method = Map(data) # Envoi des données
-        self.image = map_propagate_method.start() # Création de l'image
+        map_propagate_method = Map(self.data) # Envoi des données
+        self.image_2d, self.graph_3d = map_propagate_method.start() # Création de l'image
         self.show_image() # Affichage de l'image
+        self.show_3d()
 
     def show_image(self):
         # Affiche l'image générée dans le canvas de tkinter
-        self.image_canvas = ImageTk.PhotoImage(self.image)
-        height = self.image.height
-        width = self.image.width
+        self.image_canvas = ImageTk.PhotoImage(self.image_2d)
+        height = self.image_2d.height
+        width = self.image_2d.width
         self.canvas.config(height=height, width=width)
         self.canvas.itemconfig(self.canvas_image, image = self.image_canvas)
+
+    def show_3d(self):
+        x = np.arange(0, self.data["width"], 1)
+        y = np.arange(0, self.data["height"], 1)
+        X, Y = np.meshgrid(x, y)
+        Z = self.graph_3d
+        ax = plt.axes(projection='3d')
+        ax.plot_surface(X, Y, Z, cmap="terrain")
+        ax.set_title('surface')
+        plt.show()
 
 
 window = tk.Tk()

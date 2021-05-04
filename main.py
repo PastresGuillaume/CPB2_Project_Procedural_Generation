@@ -10,24 +10,30 @@ import matplotlib.pyplot as plt
 min_height = 0
 max_height = 400
 empty_node = None # valeur des cases vides
-added_node = 999  # valeur des cases vides qui ont été ajoutées à la liste des cases à s'occuper
+added_node = 999  # valeur des cases vides qui ont été ajoutées à la liste des cases à traiter
 
-# Panel de couleur utlisée au départ
+# Couleur de la palette "terrain" utilisée pour la 3D
 color_panel1 = {
-    (-1, 25): (0, 15, 198),
-    (25, 50): (0, 93, 255),
-    (50, 75):  (0, 162, 255),
-    (75, 100): (0, 228, 255),
-    (100, 125):  (38, 131, 0),
-    (125, 150): (51, 178, 0),
-    (150, 175): (73, 255, 0),
-    (175, 200): (174, 255, 0),
-    (200, 225): (236, 255, 0),
-    (225, 250): (255, 205, 0),
-    (250, 275): (255, 151, 0),
-    (275, 300): (255, 73, 0),
-    (300, 325): (255, 0, 0),
-    (325, 350): (111, 43, 43),
+    (-1, 20): (41, 70, 172),
+    (20, 40): (25, 101, 203),
+    (40, 60): (8, 136, 238),
+    (60, 80): (0, 167, 210),
+    (80, 100):  (0, 192, 136),
+    (100, 120): (30, 209, 107),
+    (120, 140):  (77, 219, 117),
+    (140, 160): (130, 229, 127),
+    (160, 180): (185, 241, 139),
+    (180, 200): (241, 252, 150),
+    (200, 220): (238, 233, 143),
+    (220, 240): (211, 199, 129),
+    (240, 260): (187, 167, 115),
+    (260, 280): (160, 133, 101),
+    (280, 300): (132, 98, 86),
+    (300, 320): (147, 117, 110),
+    (320, 340): (175, 153, 148),
+    (340, 360): (199, 184, 181),
+    (360, 380): (226, 216, 214),
+    (380, 400): (249, 247, 246),
 }
 
 # Panel de couleur réduit
@@ -43,6 +49,7 @@ color_panel2 = {
     (320, 360): (255, 0, 0),
     (360, 400): (111, 43, 43),
 }
+
 
 class Map:
     def __init__(self, data):
@@ -124,9 +131,9 @@ class Map:
                 if self.map[y][x] == empty_node:
                     self.img_map.putpixel((x, y), (0, 0, 0))
                 else:
-                    for color in color_panel2.keys():
+                    for color in color_panel1.keys():
                         if color[0] < self.map[y][x]<= color[1]:
-                            self.img_map.putpixel((x,y), color_panel2[color])
+                            self.img_map.putpixel((x,y), color_panel1[color])
 
     def start(self):
         self.init_map()
@@ -134,16 +141,5 @@ class Map:
         self.propagate()
         self.map = gaussian_filter(np.array(self.map), self.blur)
         self.convert_image()
-        self.show_3d()
-        return self.img_map
-
-    def show_3d(self):
-        x = np.arange(0, self.width, 1)
-        y = np.arange(0, self.height, 1)
-        X, Y = np.meshgrid(x, y)
-        Z = self.map
-        ax = plt.axes(projection='3d')
-        ax.plot_surface(X, Y, Z)
-        ax.set_title('surface')
-        plt.show()
+        return self.img_map, self.map
 
