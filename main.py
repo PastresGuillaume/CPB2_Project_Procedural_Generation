@@ -1,10 +1,7 @@
 from random import randint, choice
 from PIL import Image
 from scipy.ndimage.filters import gaussian_filter
-
-from mpl_toolkits import mplot3d
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 min_height = 0
@@ -36,27 +33,13 @@ color_panel1 = {
     (380, 400): (249, 247, 246),
 }
 
-# Panel de couleur réduit
-color_panel2 = {
-    (-1, 40): (0, 15, 198),
-    (40, 80): (0, 93, 255),
-    (80, 120):  (0, 162, 255),
-    (120, 160):  (38, 131, 0),
-    (160, 200): (73, 255, 0),
-    (200, 240): (174, 255, 0),
-    (240, 280): (236, 255, 0),
-    (280, 320): (255, 151, 0),
-    (320, 360): (255, 0, 0),
-    (360, 400): (111, 43, 43),
-}
-
 
 class Map:
     def __init__(self, data):
         # Récupération des données envoyées
         self.width = data["width"]
         self.height = data["height"]
-        self.seed = data["seed"]
+        self.seed = data["seed_number"]
         self.blur = data["blur"]
         self.map = []
         self.img_map = Image.new("RGB", (self.width, self.height), 0)
@@ -111,7 +94,6 @@ class Map:
                             if self.map[ybis][xbis] != empty_node:
                                 square += self.map[ybis][xbis]*(iterations-radius)
                                 close_node += 1*(iterations-radius)
-            #perc = abs(round(1 / 5 * square / close_node))
             perc = round(max_height * 0.05)
             value = round(square / close_node) + randint(-perc, perc)
             if value < min_height:
@@ -140,6 +122,6 @@ class Map:
         self.node_spawn()
         self.propagate()
         self.map = gaussian_filter(np.array(self.map), self.blur)
-        self.convert_image()
-        return self.img_map, self.map
+        # self.convert_image()
+        return self.map
 
