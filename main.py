@@ -1,7 +1,10 @@
+# Importation des Modules
+
 from random import randint, choice
-from PIL import Image
-from scipy.ndimage.filters import gaussian_filter
 import numpy as np
+
+from scipy.ndimage.filters import gaussian_filter
+from PIL import Image
 
 
 min_height = 0
@@ -42,12 +45,12 @@ class Map:
         self.seed = data["seed_number"]
         self.blur = data["blur"]
         self.map = []
-        self.img_map = Image.new("RGB", (self.width, self.height), 0)
+        self.img_map = Image.new("RGB", (self.width, self.height), 0)  # Créer une image de la dimension demandée
         self.seed_list = []
         self.node_list = []
 
     def show(self):
-        # Print la valeur numérique de chaque case (pour test uniquement)
+        # Print la valeur numérique de chaque case (pour tester uniquement)
         for y in range(self.height):
             for x in range(self.width):
                 print(self.map[y][x], end="; ")
@@ -70,7 +73,7 @@ class Map:
                 self.seed_list.append((y, x))
 
     def check_close_node(self, node):
-        # Ajoute toute les nodes qui n'ont pas encore étés sélectionnés autour du point considéré, dans une liste
+        # Ajoute toute les nodes qui n'ont pas encore étés sélectionnées autour du point considéré dans une liste
         for ybis in range(node[0] - 1, node[0] + 2):
             for xbis in range(node[1] - 1, node[1] + 2):
                 if 0 <= ybis < self.height and 0 <= xbis < self.width and self.map[ybis][xbis] == empty_node:
@@ -78,24 +81,25 @@ class Map:
                     self.map[ybis][xbis] = added_node
 
     def propagate(self):
-        i = 0
-        iterations = 3 + 1 # Portée de la moyenne
+        # Fonction Permettant de propager les points de départs
+        i = 0  # Compteur pour connaitre l'avancement du programme
+        radius_range = 3 + 1 # Portée de la moyenne (+1 car on commence à 1 de portée)
+        perc = round(max_height * 0.05)
         for seed in self.seed_list:  # On traite d'abord les seeds
             self.check_close_node(seed)
             i += 1
         while len(self.node_list) !=0:
             new_node = choice(self.node_list)  # On choisit une node aléatoire parmit la liste
-            square = 0
-            close_node = 0
-            for radius in range(1, iterations):
+            square = 0 # Somme des hauteur
+            close_node = 0 # Compteur du nombre de points pondérés
+            for radius in range(1, radius_range):
                 for ybis in range(new_node[0] - radius, new_node[0] + radius + 1):
                     for xbis in range(new_node[1] - radius, new_node[1] + radius + 1):
-                        if 0 <= ybis < self.height and 0 <= xbis < self.width and (xbis ==new_node[1]-radius or xbis == new_node[1]+radius or ybis==new_node[0]-radius or ybis== new_node[0]+radius )and self.map[ybis][xbis] != added_node:
-                            if self.map[ybis][xbis] != empty_node:
-                                square += self.map[ybis][xbis]*(iterations-radius)
-                                close_node += 1*(iterations-radius)
-            perc = round(max_height * 0.05)
-            value = round(square / close_node) + randint(-perc, perc)
+                        if 0 <= ybis < self.height and 0 <= xbis < self.width and (xbis == new_node[1]-radius or xbis == new_node[1]+radius or ybis==new_node[0]-radius or ybis== new_node[0]+radius )and self.map[ybis][xbis] != added_node:
+                            if self.map[ybis][xbis] != empty_node: # si la case regardée n'est pas vide
+                                square += self.map[ybis][xbis]*(radius_range-radius) # On ajoute sa hauteur à la somme
+                                close_node += 1*(radius_range-radius) # + 1 * coeff pondération au compteur
+            value = round(square / close_node) + randint(-perc, perc) # hauteur = moyenne + la variation aléatoire
             if value < min_height:
                 value = min_height
             elif value > max_height:
@@ -104,24 +108,25 @@ class Map:
             self.check_close_node(new_node)
             self.node_list.remove(new_node)
             i +=1
-            print(self.width * self.height - i)
+            print(self.width * self.height - i) # affichage du compteur
 
     def convert_image(self):
-        # Convertit la valeur numérique des hauteur en couleur (selon un panel de couleur
+        # Convertit la valeur numérique des hauteur en couleur (selon un panel de couleur)
         for y in range(self.height):
             for x in range(self.width):
                 if self.map[y][x] == empty_node:
                     self.img_map.putpixel((x, y), (0, 0, 0))
                 else:
                     for color in color_panel1.keys():
-                        if color[0] < self.map[y][x]<= color[1]:
+                        if color[0] < self.map[y][x] <= color[1]:
                             self.img_map.putpixel((x,y), color_panel1[color])
 
     def start(self):
+        # Lancement de l'algorithme
         self.init_map()
         self.node_spawn()
         self.propagate()
-        self.map = gaussian_filter(np.array(self.map), self.blur)
+        self.map = gaussian_filter(np.array(self.map), self.blur)  # Atténue les variations
         # self.convert_image()
         return self.map
 
