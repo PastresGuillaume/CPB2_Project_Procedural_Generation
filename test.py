@@ -70,16 +70,11 @@ class Map:
 
     def node_spawn(self):
         # Ajoute le nombre de seed demandées sur la carte (Position et hauteur aléatoire)
-        base_height = randint(min_height, max_height)
         while len(self.seed_list) < self.seed:
             x = randint(0, self.width-1)
             y = randint(0, self.height-1)
             if self.map[y][x] == empty_node:  # On vérifie que la case est vide
-                height = base_height + max_height*uniform(-0.40, 0.40)
-                if height > max_height:
-                    height = max_height
-                elif height < min_height:
-                    height = min_height
+                height = randint(min_height, max_height)
                 self.map[y][x] = height
                 self.seed_list.append([y, x, height])
 
@@ -95,7 +90,7 @@ class Map:
         # Fonction Permettant de propager les points de départs
         i = 0  # Compteur pour connaitre l'avancement du programme
         radius_range = 3 + 1 # Portée de la moyenne (+1 car on commence à 1 de portée)
-        perc = round(max_height * 0.05)
+        perc = round(max_height * 0.1)
         for seed in self.seed_list:  # On traite d'abord les seeds
             self.check_close_node(seed)
             i += 1
@@ -115,12 +110,12 @@ class Map:
             mean_value = round(square / close_node)
 
             for seed in self.seed_list:
-                dist = get_distance(new_node, seed)
+                dist = (get_distance(new_node, seed))**2
                 tendancy += seed[2] * 1 / dist
                 seed_weight += 1 / dist
             seed_value = round(tendancy / seed_weight)
 
-            final_value = round((2*mean_value + seed_value)/3) + randint(-perc, perc)
+            final_value = round((4*mean_value + seed_value)/5) + randint(-perc, perc)
             if final_value < min_height:
                 final_value = min_height
             elif final_value > max_height:
