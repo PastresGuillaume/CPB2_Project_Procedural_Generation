@@ -20,7 +20,7 @@ class InterfaceProject:
         self.propagate_label = tk.Label(window, text="Project: Procedural Generation")
         self.propagate_label.grid(row=0, columnspan=2)
 
-        # Definition de la taille de l'image
+        # Seed de génération
         self.label_generation_seed = tk.Label(window, text="Generation Seed")
         self.var = tk.StringVar()
         self.var.set(randint(0, 1000)) # Genere une seed aléatoire au début
@@ -30,7 +30,7 @@ class InterfaceProject:
 
         # Definition de la taille de l'image
         self.label_im_width = tk.Label(window, text="Width")
-        self.im_width = tk.Spinbox(window, from_=100, to=1000, increment=50)
+        self.im_width = tk.Spinbox(window, from_=100, to=900, increment=50)
         self.label_im_width.grid(row=3, column=0)
         self.im_width.grid(row=4, column=0)
 
@@ -45,7 +45,7 @@ class InterfaceProject:
         self.label_seed_number.grid(row=5, column=0)
         self.seed_number.grid(row=6, column=0)
 
-        # Lissage du flou du Gausse
+        # Lissage du flou du Gauss
         self.label_blur = tk.Label(window, text="Blur")
         self.blur = tk.Scale(window, from_=1, to=10, orient="horizontal")
         self.label_blur.grid(row=5, column=1)
